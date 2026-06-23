@@ -1,0 +1,291 @@
+paths:
+  raw_csv: data/raw_csv
+  raw_parquet: data/raw_parquet
+  audited: data/audited
+  master: data/master
+  master_raw: data/master_raw
+  features: data/features
+  features_aligned: data/features_aligned
+  reports: reports
+  visualization: reports/visualization
+
+components:
+  - name: zen4
+    type: compute
+  - name: h100
+    type: compute_gpu
+  - name: infra
+    type: infrastructure
+
+sources:
+  idrac:
+    schema:
+      timestamp_col: timestamp
+      node_col: nodeid
+      source_col: source
+      fqdd_col: fqdd
+      value_col: value
+    interval_seconds: 60
+    expected_ranges: # min, max
+      compositetemperature: [200, 400] # Kelvin
+      cpupower: [0, 600] # Watt
+      cpuusage: [0, 100] # %
+      drampwr: [0, 220000] # Watt
+      gpumemoryusage: [0, 100] # %
+      gpuusage: [0, 100] # %
+      memoryusage: [0, 100] # %
+      powerconsumption: [0, 500000] # mW
+      rpmreading: [0, 25000] # RPM
+      systeminputpower: [0, 2500] # Watt
+      systemoutputpower: [0, 2500] # Watt
+      systempowerconsumption: [0, 2000] # Watt
+      temperaturereading: [10, 110] # Celsius
+      totalcpupower: [0, 1000] # Watt
+      totalfanpower: [0, 600] # Watt
+      totalmemorypower: [0, 300] # Watt
+      totalstoragepower: [0, 200] # Watt
+    per_component_ranges:
+      h100:
+        systeminputpower: [0, 3500] # Watt
+        systemoutputpower: [0, 3500] # Watt
+        systempowerconsumption: [0, 3000] # Watt
+        totalmemorypower: [0, 110] # Watt
+
+  slurm:
+    schema:
+      timestamp_col: timestamp
+      node_col: nodeid
+      value_col: value
+    interval_seconds: 60
+    timeseries_tables: [cpu_load, memory_used, memoryusage]
+    skip_audit: true
+    jobs_time_cols: [submit_time, start_time, end_time]
+    jobs_unix_timestamps: true
+    node_jobs_arrays: [jobs, cpus]
+    expected_ranges:
+      cpu_load: [0, 2000]
+      memory_used: [0, 1000000]
+      memory_usage: [0, 100]
+
+  pdu:
+    schema:
+      timestamp_col: timestamp
+      node_col: nodeid
+      value_col: value
+    interval_seconds: 60
+    expected_ranges:
+      pdu: [0, 12000]
+
+audit:
+  spike_zscore: 5.0
+  flatline_window_min: 480
+  dup_threshold_multiplier: 4
+
+  # Minimum absolute deviation from the rolling mean before a point can be flagged as a spike.
+  spike_abs_delta: 0.0
+  spike_abs_delta_overrides:
+    temperaturereading: 1.0 # °C
+    compositetemperature: 1.0 # °C
+    cpupower: 10.0 # W
+    totalcpupower: 10.0 # W
+    systeminputpower: 20.0 # W
+    systemoutputpower: 20.0 # W
+    systempowerconsumption: 20.0 # W
+    totalmemorypower: 5.0 # W
+    totalfanpower: 5.0 # W
+    totalstoragepower: 0.5 # W
+    drampwr: 1000.0 # mW
+    powerconsumption: 1000.0 # mW
+
+  # Per-metric spike z-score overrides.  -1 disables spike detection.
+  spike_zscore_overrides:
+    rpmreading: -1 # fan RPM changes are always legitimate
+
+  enable_dup: true
+  enable_spike: true
+  enable_flatline: true
+  enable_bad_range: true
+
+  buffer_hi: 1.05
+  buffer_lo: 0.95
+
+  flatline_overrides:
+    drampwr: -1
+    rpmreading: -1
+    totalfanpower: -1
+    systemoutputpower: -1
+    cpuusage: -1
+    memoryusage: -1
+    gpuusage: -1
+    gpumemoryusage: -1
+    cpu_load: -1
+    memory_used: -1
+    totalstoragepower: -1
+    powerconsumption: -1
+    temperaturereading: -1
+    pdu: -1
+
+    cpupower: 720
+    systeminputpower: 720
+    systempowerconsumption: 720
+    totalmemorypower: 720
+    totalcpupower: 720
+    compositetemperature: 360
+
+  min_coverage_fraction: 0.80
+
+window:
+  start: "2026-01-01 00:00:00"
+  end: "2026-03-20 00:00:00"
+  train_end: "2026-02-28 23:59:59"
+  val_end: "2026-03-08 23:59:59"
+  # val: 2026-03-01 → 2026-03-08 (8 days); test: 2026-03-09 → 2026-03-20 (12 days)
+
+master:
+  target_interval_seconds: 60
+  max_gap_fill_minutes: 5
+  mask_on_audit_flags: true
+  mask_spikes: true
+  mask_flatlines: true
+  mask_bad_range: true
+  save_both: true
+
+stage3:
+  rolling_windows_min: [5, 15, 60]
+  rolling_quantile_windows_min: [15, 60]
+  rolling_quantiles: [0.05, 0.25, 0.75, 0.95]
+  drift_slope_windows_min: [1440, 10080]
+  quiet_norm_stats: true
+  delta_features: true
+  job_context: true
+
+visualization:
+  output_dir: reports/dataset_report
+  sample_nodes: 5
+  max_metrics_bar: 20
+  feature_distribution_sample_rows: 50000
+  correlation_sample_rows: 10000
+  timeline_points_max: 4000
+  dpi: 140
+  selected_metric_keywords:
+    power: [power, watt, pwr]
+    temp: [temp, thermal]
+    fan: [fan, rpm]
+    cpu: [cpu]
+    memory: [memory, mem, dram]
+    gpu: [gpu]
+
+maintenance_windows:
+  - start: "2026-02-14 22:00:00"
+    end: "2026-02-16 21:00:00"
+    reason: "Temporary Cluster Shutdown (Feb 14 6PM CST → Feb 16 2:10PM CST)"
+
+phase1:
+  output_dir: data/phase1
+
+  threshold_baseline:
+    system_power_w: 1800
+    h100_system_power_w: 3000
+    cpu_temp_c: 85
+    inlet_temp_c: 35
+    fan_rpm_low: 1500
+    fan_temp_crosscheck: 70
+    gpu_power_w: 380000
+    gpu_util_low_pct: 10
+    pdu_percentile: 95
+    pdu_rack_budget_ratio_high: 1.50
+    pdu_rack_budget_ratio_low: 0.85
+    cpu_component_power_w: 800 # totalcpupower fallback (zen4 max ~804W)
+    fan_power_w_high: 230 # totalfanpower fallback (~85% of max 271W)
+
+  isolation_forest:
+    n_estimators: 200
+    contamination: 0.005
+    max_features: 1.0
+    random_state: 42
+    min_train_rows: 500
+    only_under_load: false
+    feature_groups:
+      - avg
+      - rmean15
+      - rstd15
+
+  lstm_ae:
+    exclude_nodes: []
+    # Two-round iterative training to purge contaminated windows
+    iterative_rounds: 2
+    iter_clean_percentile: 99.0
+
+  evaluation:
+    output_dir: reports/phase1_eval
+    suspicious_window_min: 60
+    multi_node_threshold: 0.25
+    dpi: 140
+
+infra:
+  pdu:
+    use_in_model: true
+
+phase2:
+  min_segment_duration_min: 5
+  cluster_k_values: [4, 8, 12]
+  min_cluster_size: 10
+  use_hdbscan: true
+  efficiency_metrics: true
+  thermal_coupling: false
+  reproducibility_score: true
+  distance_alert_quantile: 0.97
+  distance_alert_min_duration_min: 30
+  distance_alert_single_host_only: true
+  random_state: 42
+  output_dir: data/phase2
+  cluster_if:
+    n_estimators: 100
+    contamination: 0.005
+  coherence_z_thresh: 2.5
+
+phase3:
+  enabled: true
+  output_dir: data/phase3
+  reports_dir: reports/phase3
+  constraint_min_persistence_min: 1
+  constraints:
+    c1_temp_fan:
+      enabled: false
+      temp_rise_rate: 0.10 # °C/min
+      fan_slack: 0.88
+    c3_dynamics:
+      power_ramp_pct: 0.18
+      lag_window_min: 10
+      min_temp_rise: 1.5
+      temp_rise_per_min: 0.18
+      power_stable_min: 5
+      power_stable_w: 20.0
+      min_power_rise_w: 15.0
+      min_temp_rise_abs: 0.75
+    c2_rack_thermal:
+      enabled: false
+      min_node_frac: 0.75
+      pdu_stable_pct: 0.10
+      temp_rise_min: 2.0
+      window_min: 15
+    c4_crossplane:
+      pdu_rise_pct: 0.15
+      node_stable: 0.03
+      window_min: 3
+      min_node_frac: 0.5
+      min_pdu_rise_w: 100.0
+      min_mismatch_w: 50.0
+
+ground_truth_dir: data/ground_truth
+
+phase4:
+  output_dir: data/phase4
+  reports_dir: reports/phase4_eval
+  cluster_min_hosts: 5
+  host_baseline_subtract: true
+  arm2_learned: true
+  fastfail_arm: true
+  sensor_degenerate_arm: true
+
+  fusion_mode: track_a
