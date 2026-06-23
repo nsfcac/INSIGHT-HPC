@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "insight-hpc"
+version = "0.1.0"
+description = "Anomaly Detection System"
+requires-python = ">=3.8"
+dependencies = [
+    "pandas",
+    "pyarrow",
+    "pyyaml",
+    "tqdm",
+    "torch>=2.3.0",
+    "scikit-learn",
+    "matplotlib",
+    "scipy",
+    "cudf-cu12",
+    "duckdb",
+    "seaborn"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
