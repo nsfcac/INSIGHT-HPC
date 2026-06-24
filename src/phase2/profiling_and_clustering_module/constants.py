@@ -1,0 +1,35 @@
+from __future__ import annotations
+
+TS = "timestamp"
+
+BASE_FEATURES = [
+    "pwr_mean",
+    "pwr_max",
+    "pwr_std",
+    "cpu_pwr_mean",
+    "cpu_load_mean",
+    "mem_pwr_mean",
+    "mem_usage_mean",
+    "inlet_temp_mean",
+    "inlet_temp_max",
+    "exhaust_temp_mean",
+    "fan_rpm_mean",
+    "pdu_mean_w",
+    "max_temp_per_watt",
+    "power_ramp_rate",
+    "joules_per_job",
+    "watts_per_cpu_pct",
+    "pdu_idrac_efficiency",
+]
+
+H100_FEATURES = BASE_FEATURES + [
+    "gpu_util_mean",
+    "gpu_util_max",
+    "gpu_mem_mean",
+    "gpu_pwr_mean",
+    "gpu_pwr_max",
+    "gpu_temp_mean",
+    "gpu_joules",
+]
+
+COMPONENT_FEATURES = {"zen4": BASE_FEATURES, "h100": H100_FEATURES}

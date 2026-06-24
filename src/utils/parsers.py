@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-import json
-import warnings
+import json, warnings
 from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
 
 
-# Return the first candidate column present in the list.
 def first_existing(columns: list, candidates: list) -> Optional[str]:
     return next((c for c in candidates if c in columns), None)
 
 
-# Test whether a value is missing/NaN/empty.
 def is_missing(x: Any) -> bool:
     if x is None:
         return True
@@ -23,7 +20,6 @@ def is_missing(x: Any) -> bool:
         return False
 
 
-# Coerce a value to int, or None if missing/invalid.
 def to_int(x: Any) -> Optional[int]:
     if is_missing(x):
         return None
@@ -33,7 +29,6 @@ def to_int(x: Any) -> Optional[int]:
         return None
 
 
-# Coerce a value to float, or None if missing/invalid.
 def to_float(x: Any) -> Optional[float]:
     if is_missing(x):
         return None
@@ -43,7 +38,7 @@ def to_float(x: Any) -> Optional[float]:
         return None
 
 
-# Parse a list-like/JSON value, casting each item.
+# Parse a value (list, JSON, or comma-separated string) into a list via item_cast.
 def parse_list(x: Any, item_cast) -> list:
     if isinstance(x, np.ndarray):
         x = x.tolist()
@@ -65,17 +60,15 @@ def parse_list(x: Any, item_cast) -> list:
     return [v] if v is not None else []
 
 
-# Parse a value into a list of ints.
 def parse_int_list(x: Any) -> list:
     return parse_list(x, to_int)
 
 
-# Parse a value into a list of floats.
 def parse_float_list(x: Any) -> list:
     return parse_list(x, to_float)
 
 
-# Parse a value into a list of strings.
+# Parse a value into a list of non-empty strings (handles JSON and Postgres arrays).
 def parse_str_list(x: Any) -> list:
     if isinstance(x, np.ndarray):
         x = x.tolist()
@@ -90,11 +83,15 @@ def parse_str_list(x: Any) -> list:
         # Postgres array format: {a,b} or {"a","b"}.
         if s.startswith("{") and s.endswith("}"):
             inner = s[1:-1]
-            return [v.strip().strip('"').strip("'") for v in inner.split(",") if v.strip()]
+            return [
+                v.strip().strip('"').strip("'") for v in inner.split(",") if v.strip()
+            ]
         try:
             parsed = json.loads(s)
             if isinstance(parsed, list):
-                return [str(v).strip() for v in parsed if v is not None and str(v).strip()]
+                return [
+                    str(v).strip() for v in parsed if v is not None and str(v).strip()
+                ]
         except Exception:
             pass
         if "," in s:
@@ -103,13 +100,15 @@ def parse_str_list(x: Any) -> list:
     return [str(x).strip()] if x is not None else []
 
 
-# Coerce a series to UTC timestamps floored to the minute.
+# Coerce a series to UTC microsecond timestamps floored to the minute.
 def as_utc_min(series: pd.Series) -> pd.Series:
     if pd.api.types.is_integer_dtype(series):
         parsed = pd.to_datetime(series, unit="ns", utc=True)
     elif pd.api.types.is_datetime64_any_dtype(series):
         tz = getattr(series.dtype, "tz", None)
-        parsed = series.dt.tz_localize("UTC") if tz is None else series.dt.tz_convert("UTC")
+        parsed = (
+            series.dt.tz_localize("UTC") if tz is None else series.dt.tz_convert("UTC")
+        )
     else:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -117,7 +116,7 @@ def as_utc_min(series: pd.Series) -> pd.Series:
     return parsed.astype("datetime64[us, UTC]").dt.floor("60s")
 
 
-# Parse slurm timestamps (epoch or string) to UTC.
+# Parse Slurm timestamps, detecting second vs nanosecond integer units.
 def parse_slurm_ts(series: pd.Series) -> pd.Series:
     if pd.api.types.is_integer_dtype(series):
         sample = series.dropna().iloc[0] if not series.dropna().empty else 0
@@ -130,7 +129,7 @@ def parse_slurm_ts(series: pd.Series) -> pd.Series:
     return as_utc_min(series)
 
 
-# Ensure a frame's timestamp column is UTC microsecond dtype.
+# Ensure a DataFrame's timestamp column is UTC microsecond dtype.
 def ensure_utc_us(df: pd.DataFrame, ts_col: str) -> pd.DataFrame:
     if ts_col not in df.columns:
         return df
@@ -147,7 +146,7 @@ def ensure_utc_us(df: pd.DataFrame, ts_col: str) -> pd.DataFrame:
     return df
 
 
-# Align a cpu-share list to its job-id list by length.
+# Pad or truncate per-job CPU values to match the job list length.
 def align_cpu(jobs: list, cpu: list) -> list:
     if not jobs:
         return []
@@ -156,3 +155,43 @@ def align_cpu(jobs: list, cpu: list) -> list:
     padded = [float(v) for v in cpu[: len(jobs)]]
     padded += [np.nan] * (len(jobs) - len(padded))
     return padded
+
+
+# Find the "_avg" column matching all keywords.
+def find_avg(cols, *kws):
+    kws_l = [k.lower() for k in kws]
+    return next(
+        (c for c in cols if c.endswith("_avg") and all(k in c.lower() for k in kws_l)),
+        None,
+    )
+
+
+# Find the "_avg" column matching any keyword.
+def findany(cols, *kws):
+    kws_l = [k.lower() for k in kws]
+    return next(
+        (c for c in cols if c.endswith("_avg") and any(k in c.lower() for k in kws_l)),
+        None,
+    )
+
+
+# Convert a timestamp series to int64 nanoseconds (UTC, tz-naive).
+def series_to_ns(series: pd.Series) -> np.ndarray:
+    ts = pd.to_datetime(series, utc=True, errors="coerce")
+    return (
+        ts.dt.tz_convert("UTC")
+        .dt.tz_localize(None)
+        .astype("datetime64[ns]")
+        .astype("int64")
+        .to_numpy(copy=False)
+    )
+
+
+# Convert a single timestamp to int64 nanoseconds (UTC).
+def timestamp_to_ns(ts) -> int:
+    out = pd.Timestamp(ts)
+    if out.tzinfo is None:
+        out = out.tz_localize("UTC")
+    else:
+        out = out.tz_convert("UTC")
+    return int(out.value)

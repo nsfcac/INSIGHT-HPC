@@ -1,0 +1,50 @@
+from __future__ import annotations
+
+FEATURE_SUFFIXES = (
+    "_avg",
+    "_roc1",
+    "_rmean15",
+    "_rstd15",
+    "_rmean60",
+    "_rstd60",
+    "_rp05_15",
+    "_rp25_15",
+    "_rp75_15",
+    "_rp95_15",
+    "_rp05_60",
+    "_rp25_60",
+    "_rp75_60",
+    "_rp95_60",
+    "_enc",
+    "_slope1d",
+    "_slope7d",
+    "_nan_streak",
+)
+
+EXCLUDE_KEYWORDS = [
+    "audit_",
+    "split",
+    "hostname",
+    "component",
+    "timestamp",
+    "rack",
+    "chassis",
+    "row_",
+    "primary_job",
+    "jobs_json",
+    "cpu_shares",
+    "active_job",
+    "node_busy",
+    "node_idle",
+    "primary_job_run",
+    "primary_job_changed",
+    "job_set_changed",
+    "is_running",
+    "is_multi",
+    "pdu__rack_audit",
+    "disk",
+    "smartdata",
+    "bay",
+]
+
+EXPLICIT_FEATURES = ("regime_id",)

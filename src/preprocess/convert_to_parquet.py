@@ -1,16 +1,14 @@
-# This is one time file to convert csv to parquet.
 from __future__ import annotations
 
 try:
     import cudf.pandas
+
     cudf.pandas.install()
     print("GPU Acceleration via cudf.pandas enabled.")
 except ImportError:
     print("cudf.pandas not found. Running on CPU via standard pandas.")
 
-import re
-import time
-import warnings
+import re, time, warnings
 from pathlib import Path
 
 import pandas as pd
@@ -35,7 +33,7 @@ TS_NAMES = re.compile(
 )
 
 
-# Decode a single possibly-escaped string value.
+# Decode a Postgres bytea {int,...} string back to text when it is valid UTF-8.
 def decode_one(val) -> str:
     if not isinstance(val, str):
         return val
@@ -57,7 +55,7 @@ def decode_one(val) -> str:
     return val
 
 
-# Decide whether a column needs decoding and its kind.
+# Decide whether a column holds encodable bytea arrays worth decoding.
 def needs_decode(col: str, series: pd.Series) -> tuple[bool, str]:
     if NUMERIC_NAMES.search(col):
         return False, "numeric col name"
@@ -83,7 +81,7 @@ def needs_decode(col: str, series: pd.Series) -> tuple[bool, str]:
     return True, "ok"
 
 
-# Detect whether a column holds timestamps.
+# Return whether a column name and sample values look like a parseable timestamp.
 def is_ts_col(col: str, series: pd.Series) -> bool:
     if not TS_NAMES.search(col):
         return False
@@ -101,7 +99,7 @@ def is_ts_col(col: str, series: pd.Series) -> bool:
         return False
 
 
-# Coerce a series to UTC microsecond timestamps.
+# Convert a column to UTC microsecond timestamps (Slurm integer epochs are seconds).
 def to_utc_us(series: pd.Series, col: str) -> pd.Series:
     # Slurm submit/start/end are Unix epoch SECONDS, not nanoseconds.
     if pd.api.types.is_integer_dtype(series):
@@ -118,10 +116,14 @@ def to_utc_us(series: pd.Series, col: str) -> pd.Series:
     return parsed.astype("datetime64[us, UTC]")
 
 
-# Decode and timestamp-normalize one CSV chunk.
-def transform_chunk(chunk: pd.DataFrame, decode_cols: set[str], ts_cols: set[str]) -> pd.DataFrame:
+# Decode bytea columns, coerce value to float, and normalise timestamps in one chunk.
+def transform_chunk(
+    chunk: pd.DataFrame, decode_cols: set[str], ts_cols: set[str]
+) -> pd.DataFrame:
     if "value" in chunk.columns:
-        chunk["value"] = pd.to_numeric(chunk["value"], errors="coerce").astype("float64")
+        chunk["value"] = pd.to_numeric(chunk["value"], errors="coerce").astype(
+            "float64"
+        )
 
     for col in decode_cols:
         if col in chunk.columns:
@@ -145,7 +147,7 @@ def transform_chunk(chunk: pd.DataFrame, decode_cols: set[str], ts_cols: set[str
     return chunk
 
 
-# Build the pyarrow schema for a chunk.
+# Build an Arrow schema, forcing timestamp columns to us-UTC and value to float64.
 def build_pa_schema(chunk: pd.DataFrame, ts_cols: set[str]) -> pa.Schema:
     fields = []
     inferred = pa.Schema.from_pandas(chunk, preserve_index=False)
@@ -159,7 +161,7 @@ def build_pa_schema(chunk: pd.DataFrame, ts_cols: set[str]) -> pa.Schema:
     return pa.schema(fields)
 
 
-# Stream-convert one CSV to parquet in chunks.
+# Stream a CSV to parquet in chunks, decoding and normalising as it goes.
 def csv_to_parquet(src: Path, dst: Path, chunksize: int = 1_000_000) -> None:
     time_to_convert = time.perf_counter()
     src_size_gb = src.stat().st_size / 1e9
@@ -290,8 +292,10 @@ def csv_to_parquet(src: Path, dst: Path, chunksize: int = 1_000_000) -> None:
     print(f" - schema: {schema_str}", flush=True)
 
 
-# Convert all raw CSVs to parquet per the config.
-def convert_raw_to_parquet(config_path: str = "configs/config.yaml", force: bool = False) -> None:
+# Convert every raw CSV under the configured directory to parquet, skipping up-to-date outputs.
+def convert_raw_to_parquet(
+    config_path: str = "configs/config.yaml", force: bool = False
+) -> None:
     cfg = load_config(str(config_path))
     raw_base = Path(cfg["paths"]["raw_csv"]).resolve()
     out_base = Path(cfg["paths"]["raw_parquet"]).resolve()

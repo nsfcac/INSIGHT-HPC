@@ -1,0 +1,14 @@
+from __future__ import annotations
+
+TS = "timestamp"
+
+CPU_LOAD_HIGH = 65.0
+CPU_LOAD_LOW = 25.0
+REQ_CPU_HEAVY = 0.60
+POWER_Z_MEDIUM = 4.0
+THERMAL_Z_HIGH = 5.0
+POWER_EXCESS_THRESHOLD = 0.40
+
+FAILED_STATES = frozenset(
+    {"FAILED", "TIMEOUT", "CANCELLED", "NODE_FAIL", "OUT_OF_MEMORY"}
+)

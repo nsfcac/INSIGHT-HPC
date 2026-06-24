@@ -9,8 +9,13 @@ from src.utils.maintenance import load_maintenance_windows
 
 REGIME_INSIDE_MAINTENANCE = -1
 
-# Map each timestamp to a regime integer.
-def assign_regime_id(timestamps: pd.Series | np.ndarray, cfg: Optional[dict] = None, windows: Optional[List[dict]] = None) -> np.ndarray:
+
+# Assign an integer regime id to each timestamp based on maintenance windows.
+def assign_regime_id(
+    timestamps: pd.Series | np.ndarray,
+    cfg: Optional[dict] = None,
+    windows: Optional[List[dict]] = None,
+) -> np.ndarray:
     if windows is None:
         if cfg is None:
             raise ValueError("assign_regime_id needs either cfg or windows")
@@ -38,7 +43,7 @@ def assign_regime_id(timestamps: pd.Series | np.ndarray, cfg: Optional[dict] = N
 
     for i, w in enumerate(sorted_win):
         w_start = np.datetime64(w["start"].tz_convert(None), "ns")
-        w_end   = np.datetime64(w["end"].tz_convert(None),   "ns")
+        w_end = np.datetime64(w["end"].tz_convert(None), "ns")
         # After this window's end → bump regime to i+1
         regime = np.where(ts_arr >= w_end, np.int8(i + 1), regime)
         # Inside this window → mark -1 (overrides previous assignment)
@@ -47,8 +52,15 @@ def assign_regime_id(timestamps: pd.Series | np.ndarray, cfg: Optional[dict] = N
 
     return regime
 
-# Attach a regime_id column derived from timestamps.
-def attach_regime_id(df: pd.DataFrame, cfg: Optional[dict] = None, windows: Optional[List[dict]] = None, ts_col: str = "timestamp", exclude_split: bool = True) -> pd.DataFrame:
+
+# Attach regime_id to a DataFrame and exclude maintenance rows from the split.
+def attach_regime_id(
+    df: pd.DataFrame,
+    cfg: Optional[dict] = None,
+    windows: Optional[List[dict]] = None,
+    ts_col: str = "timestamp",
+    exclude_split: bool = True,
+) -> pd.DataFrame:
     if ts_col not in df.columns:
         raise KeyError(f"DataFrame has no {ts_col} column")
 
@@ -60,14 +72,24 @@ def attach_regime_id(df: pd.DataFrame, cfg: Optional[dict] = None, windows: Opti
         if maint_mask.any():
 
             split_col = df["split"]
-            if isinstance(split_col.dtype, pd.CategoricalDtype) and \
-               "exclude" not in split_col.cat.categories:
+            if (
+                isinstance(split_col.dtype, pd.CategoricalDtype)
+                and "exclude" not in split_col.cat.categories
+            ):
                 df["split"] = split_col.cat.add_categories(["exclude"])
             df.loc[maint_mask, "split"] = "exclude"
     return df
 
-# Rolling aggregate that resets at regime boundaries.
-def rolling_by_regime(series: pd.Series, regime_id: pd.Series | np.ndarray, window: int, min_periods: Optional[int] = None, op: str = "mean", quantile: Optional[float] = None) -> pd.Series:
+
+# Rolling aggregation computed independently within each contiguous regime block.
+def rolling_by_regime(
+    series: pd.Series,
+    regime_id: pd.Series | np.ndarray,
+    window: int,
+    min_periods: Optional[int] = None,
+    op: str = "mean",
+    quantile: Optional[float] = None,
+) -> pd.Series:
     if min_periods is None:
         min_periods = max(1, window // 2)
 
@@ -80,7 +102,7 @@ def rolling_by_regime(series: pd.Series, regime_id: pd.Series | np.ndarray, wind
         return out
     change = np.concatenate(([True], r[1:] != r[:-1]))
     block_starts = np.where(change)[0]
-    block_ends   = np.concatenate((block_starts[1:], [len(r)]))
+    block_ends = np.concatenate((block_starts[1:], [len(r)]))
 
     for b0, b1 in zip(block_starts, block_ends):
         if r[b0] == REGIME_INSIDE_MAINTENANCE:
@@ -93,15 +115,20 @@ def rolling_by_regime(series: pd.Series, regime_id: pd.Series | np.ndarray, wind
             res = rolled.std()
         elif op == "quantile":
             if quantile is None:
-                raise ValueError("rolling_by_regime op='quantile' requires `quantile=...`")
+                raise ValueError(
+                    "rolling_by_regime op='quantile' requires `quantile=...`"
+                )
             res = rolled.quantile(quantile)
         else:
             raise ValueError(f"Unsupported op: {op}")
         out.iloc[b0:b1] = res.values
     return out
 
-# Compute slopes without crossing regime boundaries.
-def regime_safe_slope(vals: np.ndarray, regime_id: np.ndarray, window: int, slope_fn) -> np.ndarray:
+
+# Apply a slope function within each regime block, skipping maintenance spans.
+def regime_safe_slope(
+    vals: np.ndarray, regime_id: np.ndarray, window: int, slope_fn
+) -> np.ndarray:
     n = len(vals)
     out = np.full(n, np.nan, dtype=np.float32)
     if n == 0:
@@ -109,7 +136,7 @@ def regime_safe_slope(vals: np.ndarray, regime_id: np.ndarray, window: int, slop
 
     change = np.concatenate(([True], regime_id[1:] != regime_id[:-1]))
     block_starts = np.where(change)[0]
-    block_ends   = np.concatenate((block_starts[1:], [n]))
+    block_ends = np.concatenate((block_starts[1:], [n]))
 
     for b0, b1 in zip(block_starts, block_ends):
         if regime_id[b0] == REGIME_INSIDE_MAINTENANCE:
