@@ -59,9 +59,6 @@ sources:
     interval_seconds: 60
     timeseries_tables: [cpu_load, memory_used, memoryusage]
     skip_audit: true
-    jobs_time_cols: [submit_time, start_time, end_time]
-    jobs_unix_timestamps: true
-    node_jobs_arrays: [jobs, cpus]
     expected_ranges:
       cpu_load: [0, 2000]
       memory_used: [0, 1000000]
@@ -132,8 +129,6 @@ audit:
     totalcpupower: 720
     compositetemperature: 360
 
-  min_coverage_fraction: 0.80
-
 window:
   start: "2026-01-01 00:00:00"
   end: "2026-03-20 00:00:00"
@@ -142,12 +137,7 @@ window:
   # val: 2026-03-01 → 2026-03-08 (8 days); test: 2026-03-09 → 2026-03-20 (12 days)
 
 master:
-  target_interval_seconds: 60
-  max_gap_fill_minutes: 5
   mask_on_audit_flags: true
-  mask_spikes: true
-  mask_flatlines: true
-  mask_bad_range: true
   save_both: true
 
 stage3:
@@ -155,25 +145,9 @@ stage3:
   rolling_quantile_windows_min: [15, 60]
   rolling_quantiles: [0.05, 0.25, 0.75, 0.95]
   drift_slope_windows_min: [1440, 10080]
-  quiet_norm_stats: true
-  delta_features: true
-  job_context: true
 
 visualization:
-  output_dir: reports/dataset_report
-  sample_nodes: 5
-  max_metrics_bar: 20
-  feature_distribution_sample_rows: 50000
-  correlation_sample_rows: 10000
-  timeline_points_max: 4000
   dpi: 140
-  selected_metric_keywords:
-    power: [power, watt, pwr]
-    temp: [temp, thermal]
-    fan: [fan, rpm]
-    cpu: [cpu]
-    memory: [memory, mem, dram]
-    gpu: [gpu]
 
 maintenance_windows:
   - start: "2026-02-14 22:00:00"
@@ -205,13 +179,8 @@ phase1:
     random_state: 42
     min_train_rows: 500
     only_under_load: false
-    feature_groups:
-      - avg
-      - rmean15
-      - rstd15
 
   lstm_ae:
-    exclude_nodes: []
     # Two-round iterative training to purge contaminated windows
     iterative_rounds: 2
     iter_clean_percentile: 99.0
@@ -220,11 +189,6 @@ phase1:
     output_dir: reports/phase1_eval
     suspicious_window_min: 60
     multi_node_threshold: 0.25
-    dpi: 140
-
-infra:
-  pdu:
-    use_in_model: true
 
 phase2:
   min_segment_duration_min: 5
@@ -232,7 +196,6 @@ phase2:
   min_cluster_size: 10
   use_hdbscan: true
   efficiency_metrics: true
-  thermal_coupling: false
   reproducibility_score: true
   distance_alert_quantile: 0.97
   distance_alert_min_duration_min: 30
@@ -282,10 +245,3 @@ ground_truth_dir: data/ground_truth
 phase4:
   output_dir: data/phase4
   reports_dir: reports/phase4_eval
-  cluster_min_hosts: 5
-  host_baseline_subtract: true
-  arm2_learned: true
-  fastfail_arm: true
-  sensor_degenerate_arm: true
-
-  fusion_mode: track_a

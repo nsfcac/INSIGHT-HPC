@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from src.phase4.fusion_gbdt import build_fused_index, window_slice
+from src.utils.io_utils import load_parquet
 
 
 # Resolve and create the phase-4 output, fused-input, and reports paths.
