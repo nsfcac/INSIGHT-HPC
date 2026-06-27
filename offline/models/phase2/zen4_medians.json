@@ -1,0 +1,18 @@
+{
+  "pwr_mean": 526.5125732421875,
+  "pwr_max": 609.423095703125,
+  "pwr_std": 10.311406135559082,
+  "cpu_pwr_mean": 273.688232421875,
+  "cpu_load_mean": 6347.3330078125,
+  "mem_pwr_mean": 60.62765121459961,
+  "inlet_temp_mean": 21.87333106994629,
+  "inlet_temp_max": 22.0,
+  "exhaust_temp_mean": 33.0,
+  "fan_rpm_mean": 6969.78515625,
+  "pdu_mean_w": 10884.1875,
+  "max_temp_per_watt": 0.040258295834064484,
+  "power_ramp_rate": 11.473960876464844,
+  "joules_per_job": 750836.8125,
+  "watts_per_cpu_pct": 7.81300163269043,
+  "pdu_idrac_efficiency": 20.711605072021484
+}

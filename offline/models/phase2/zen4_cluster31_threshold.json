@@ -1,0 +1,1 @@
+{"threshold": 0.5465167949895452, "distance_threshold": 0.33958133310079575, "distance_quantile": 0.97, "distance_min_duration_min": 30.0, "distance_single_host_only": true, "n_train_rows": 146, "n_train_segments": 18}

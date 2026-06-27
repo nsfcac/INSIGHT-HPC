@@ -1,0 +1,22 @@
+# INSIGHT-HPC online detector config.
+tick_seconds: 60
+lookback_days: 7
+
+monster_db:
+  # read-only connection target (creds from env tsdb_username/tsdb_password)
+  host: 0.0.0.0
+  port: 5432
+  database: h100
+
+insight_db:
+  # separate DB — episodes/evidence are written here
+  host: 0.0.0.0
+  port: 5432
+  database: insight_hpc
+
+artifacts_dir: offline/models
+
+episodes:
+  open_votes: 2
+  close_votes: 1
+  cooldown_min: 5

@@ -1,0 +1,7 @@
+{
+  "n_clusters": 33,
+  "silhouette": 0.3906419277191162,
+  "davies_bouldin": 1.046999451911242,
+  "noise_fraction": 0.38345864661654133,
+  "chosen": true
+}

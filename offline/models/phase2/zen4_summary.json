@@ -1,0 +1,277 @@
+{
+  "clusters": {
+    "0": {
+      "n_all": 38,
+      "n_train": 12,
+      "algorithm": "hdbscan",
+      "pwr_mean": 887.677001953125,
+      "joules_per_job": 32102822.0,
+      "pdu_efficiency": 14.437922477722168
+    },
+    "1": {
+      "n_all": 100,
+      "n_train": 11,
+      "algorithm": "hdbscan",
+      "pwr_mean": 1066.51171875,
+      "joules_per_job": 1719369.0,
+      "pdu_efficiency": 16.064088821411133
+    },
+    "2": {
+      "n_all": 31,
+      "n_train": 27,
+      "algorithm": "hdbscan",
+      "pwr_mean": 912.0616455078125,
+      "joules_per_job": 1496784.625,
+      "pdu_efficiency": 11.430452346801758
+    },
+    "3": {
+      "n_all": 129,
+      "n_train": 20,
+      "algorithm": "hdbscan",
+      "pwr_mean": 905.2105102539062,
+      "joules_per_job": 3806056.0,
+      "pdu_efficiency": 13.352824211120605
+    },
+    "4": {
+      "n_all": 74,
+      "n_train": 10,
+      "algorithm": "hdbscan",
+      "pwr_mean": 602.5501708984375,
+      "joules_per_job": 3380712.0,
+      "pdu_efficiency": 27.33816909790039
+    },
+    "5": {
+      "n_all": 53,
+      "n_train": 10,
+      "algorithm": "hdbscan",
+      "pwr_mean": 942.6300048828125,
+      "joules_per_job": 1663510.625,
+      "pdu_efficiency": 9.865341186523438
+    },
+    "6": {
+      "n_all": 240,
+      "n_train": 12,
+      "algorithm": "hdbscan",
+      "pwr_mean": 844.9932861328125,
+      "joules_per_job": 1497732.25,
+      "pdu_efficiency": 19.59842300415039
+    },
+    "7": {
+      "n_all": 19,
+      "n_train": 10,
+      "algorithm": "hdbscan",
+      "pwr_mean": 647.42919921875,
+      "joules_per_job": 635401.0625,
+      "pdu_efficiency": 13.786768913269043
+    },
+    "8": {
+      "n_all": 98,
+      "n_train": 21,
+      "algorithm": "hdbscan",
+      "pwr_mean": 851.29052734375,
+      "joules_per_job": 3546266.75,
+      "pdu_efficiency": 12.890480041503906
+    },
+    "9": {
+      "n_all": 23,
+      "n_train": 11,
+      "algorithm": "hdbscan",
+      "pwr_mean": 802.8910522460938,
+      "joules_per_job": 464740.40625,
+      "pdu_efficiency": 11.653284072875977
+    },
+    "10": {
+      "n_all": 340,
+      "n_train": 10,
+      "algorithm": "hdbscan",
+      "pwr_mean": 971.9351196289062,
+      "joules_per_job": 3182632.0,
+      "pdu_efficiency": 17.917253494262695
+    },
+    "11": {
+      "n_all": 217,
+      "n_train": 24,
+      "algorithm": "hdbscan",
+      "pwr_mean": 943.2383422851562,
+      "joules_per_job": 5042683.5,
+      "pdu_efficiency": 11.306870460510254
+    },
+    "12": {
+      "n_all": 31,
+      "n_train": 19,
+      "algorithm": "hdbscan",
+      "pwr_mean": 861.4328002929688,
+      "joules_per_job": 2568932.25,
+      "pdu_efficiency": 14.413473129272461
+    },
+    "13": {
+      "n_all": 65,
+      "n_train": 15,
+      "algorithm": "hdbscan",
+      "pwr_mean": 870.4395751953125,
+      "joules_per_job": 1993857.875,
+      "pdu_efficiency": 16.252180099487305
+    },
+    "14": {
+      "n_all": 49,
+      "n_train": 11,
+      "algorithm": "hdbscan",
+      "pwr_mean": 564.5631103515625,
+      "joules_per_job": 47720480.0,
+      "pdu_efficiency": 19.746002197265625
+    },
+    "15": {
+      "n_all": 18,
+      "n_train": 12,
+      "algorithm": "hdbscan",
+      "pwr_mean": 479.537109375,
+      "joules_per_job": 7673146.0,
+      "pdu_efficiency": 21.447053909301758
+    },
+    "16": {
+      "n_all": 267,
+      "n_train": 55,
+      "algorithm": "hdbscan",
+      "pwr_mean": 511.6981506347656,
+      "joules_per_job": 1295427.875,
+      "pdu_efficiency": 21.148130416870117
+    },
+    "17": {
+      "n_all": 36,
+      "n_train": 22,
+      "algorithm": "hdbscan",
+      "pwr_mean": 436.0120544433594,
+      "joules_per_job": 1452462.5,
+      "pdu_efficiency": 21.282474517822266
+    },
+    "18": {
+      "n_all": 205,
+      "n_train": 20,
+      "algorithm": "hdbscan",
+      "pwr_mean": 484.43902587890625,
+      "joules_per_job": 746860.4375,
+      "pdu_efficiency": 21.493471145629883
+    },
+    "19": {
+      "n_all": 51,
+      "n_train": 21,
+      "algorithm": "hdbscan",
+      "pwr_mean": 485.5596008300781,
+      "joules_per_job": 9969107.0,
+      "pdu_efficiency": 21.543004989624023
+    },
+    "20": {
+      "n_all": 49,
+      "n_train": 20,
+      "algorithm": "hdbscan",
+      "pwr_mean": 482.820068359375,
+      "joules_per_job": 566552.3125,
+      "pdu_efficiency": 21.777456283569336
+    },
+    "21": {
+      "n_all": 47,
+      "n_train": 18,
+      "algorithm": "hdbscan",
+      "pwr_mean": 453.30859375,
+      "joules_per_job": 863380.1875,
+      "pdu_efficiency": 18.450885772705078
+    },
+    "22": {
+      "n_all": 64,
+      "n_train": 26,
+      "algorithm": "hdbscan",
+      "pwr_mean": 484.1282043457031,
+      "joules_per_job": 2647470.0,
+      "pdu_efficiency": 22.57765007019043
+    },
+    "23": {
+      "n_all": 17,
+      "n_train": 10,
+      "algorithm": "hdbscan",
+      "pwr_mean": 478.21038818359375,
+      "joules_per_job": 983873.75,
+      "pdu_efficiency": 21.262252807617188
+    },
+    "24": {
+      "n_all": 161,
+      "n_train": 28,
+      "algorithm": "hdbscan",
+      "pwr_mean": 495.4255065917969,
+      "joules_per_job": 499616.09375,
+      "pdu_efficiency": 20.82249641418457
+    },
+    "25": {
+      "n_all": 44,
+      "n_train": 16,
+      "algorithm": "hdbscan",
+      "pwr_mean": 498.0940246582031,
+      "joules_per_job": 833467.0,
+      "pdu_efficiency": 20.659912109375
+    },
+    "26": {
+      "n_all": 94,
+      "n_train": 35,
+      "algorithm": "hdbscan",
+      "pwr_mean": 480.6054382324219,
+      "joules_per_job": 532312.6875,
+      "pdu_efficiency": 21.262088775634766
+    },
+    "27": {
+      "n_all": 22,
+      "n_train": 12,
+      "algorithm": "hdbscan",
+      "pwr_mean": 480.5345458984375,
+      "joules_per_job": 1603499.5,
+      "pdu_efficiency": 22.929214477539062
+    },
+    "28": {
+      "n_all": 83,
+      "n_train": 27,
+      "algorithm": "hdbscan",
+      "pwr_mean": 483.4617004394531,
+      "joules_per_job": 1265007.625,
+      "pdu_efficiency": 22.739002227783203
+    },
+    "29": {
+      "n_all": 119,
+      "n_train": 44,
+      "algorithm": "hdbscan",
+      "pwr_mean": 481.02783203125,
+      "joules_per_job": 1065679.5,
+      "pdu_efficiency": 22.05547523498535
+    },
+    "30": {
+      "n_all": 98,
+      "n_train": 28,
+      "algorithm": "hdbscan",
+      "pwr_mean": 494.7441101074219,
+      "joules_per_job": 339122.28125,
+      "pdu_efficiency": 20.717262268066406
+    },
+    "31": {
+      "n_all": 52,
+      "n_train": 11,
+      "algorithm": "hdbscan",
+      "pwr_mean": 487.65106201171875,
+      "joules_per_job": 243067.859375,
+      "pdu_efficiency": 21.07809066772461
+    },
+    "32": {
+      "n_all": 78,
+      "n_train": 28,
+      "algorithm": "hdbscan",
+      "pwr_mean": 497.32110595703125,
+      "joules_per_job": 474473.125,
+      "pdu_efficiency": 20.67206382751465
+    }
+  },
+  "quality": {
+    "kmeans_silhouette": 0.0,
+    "kmeans_db": Infinity,
+    "chosen_algorithm": "hdbscan",
+    "n_clusters": 33,
+    "n_train_segments": 1064,
+    "hdbscan_silhouette": 0.3906419277191162,
+    "hdbscan_db": 1.046999451911242
+  }
+}
